@@ -9,55 +9,61 @@ class Student:
 
     def courses_rate(self, lecturer, course, grade):
         if not isinstance(lecturer,
-                          Lecturer) or course not in self.courses_in_progress or course not in lecturer.courses_attached:
+                          Lecturer) or course not in self.courses_in_progress or \
+                course not in lecturer.courses_attached or grade < 1 or grade > 10:
             return 'Ошибка'
         else:
-            if course in lecturer.courses_grades:
-                lecturer.courses_grades[course] += [grade]
+            if course in lecturer.grades:
+                lecturer.grades[course] += [grade]
             else:
-                lecturer.courses_grades[course] = [grade]
+                lecturer.grades[course] = [grade]
 
     def __str__(self):
         res = f'''
         Имя: {self.name}
         Фамилия: {self.surname}
-        Средняя оценка за домашние задания: {sum(sum(self.grades.values(), [])) / len(sum(self.grades.values(), []))}
+        Средняя оценка за домашние задания: {self.average_grade()}
         Курсы в процессе изучения: {', '.join(self.courses_in_progress)}
         Завершенные курсы: {', '.join(self.finished_courses)}
         '''
         return res
 
     def __lt__(self, other):
-        if isinstance(other, Student):
-            return (sum(sum(self.grades.values(), [])) / len(sum(self.grades.values(), []))) < (
-                    sum(sum(other.grades.values(), [])) / len(sum(other.grades.values(), [])))
+        if not isinstance(other, Student):
+            raise Exception('Не является студентом')
         else:
-            return 'Не является студентом'
+            return self.average_grade() < other.average_grade()
 
-    def __gt__(self, other):
-        if isinstance(other, Student):
-            return (sum(sum(self.grades.values(), [])) / len(sum(self.grades.values(), []))) > (
-                    sum(sum(other.grades.values(), [])) / len(sum(other.grades.values(), [])))
+    def __le__(self, other):
+        if not isinstance(other, Student):
+            raise Exception('Не является студентом')
         else:
-            return 'Не является студентом'
+            return self.average_grade() <= other.average_grade()
 
-    @staticmethod
-    def average_course_grade(self, course):
-        course_grades = []
-        for student in students:
-            course_grades.append(student.grades[course])
+    def __eq__(self, other):
+        if not isinstance(other, Student):
+            raise Exception('Не является студентом')
+        else:
+            return self.average_grade() == other.average_grade()
 
-        def mean(list):
-            total_sum = 0
-            count = 0
-            for sublist in list:
-                for num in sublist:
-                    total_sum += num
-                    count += 1
-            mean_value = total_sum / count
-            return mean_value
+    def average_grade(self):
+        if not self:
+            return 0
+        else:
+            grades_storage = []
+            for grade in self.grades.values():
+                grades_storage.extend(grade)
+            return round(sum(grades_storage) / len(grades_storage), 2)
 
-        return mean(course_grades)
+    def average_course_grade(persons, course):
+        if not isinstance(persons, list):
+            return 'Not list'
+        course_grades_storage = []
+        for person in persons:
+            course_grades_storage.extend(person.grades.get(course, []))
+        if not course_grades_storage:
+            return 'По такому курсу ни у кого оценок нет'
+        return round(sum(course_grades_storage) / len(course_grades_storage), 2)
 
 
 class Mentor:
@@ -70,52 +76,58 @@ class Mentor:
 class Lecturer(Mentor):
     def __init__(self, name, surname):
         super().__init__(name, surname)
-        self.courses_grades = {}
+        self.grades = {}
 
     def __str__(self):
         res = f'''
         Имя: {self.name}
         Фамилия: {self.surname}
-        Средняя оценка за лекции: {sum(sum(self.courses_grades.values(), [])) / len(sum(self.courses_grades.values(), []))}
+        Средняя оценка за лекции: {self.average_grade()}
         '''
         return res
 
     def __lt__(self, other):
-        if isinstance(other, Lecturer):
-            return (sum(sum(self.courses_grades.values(), [])) / len(sum(self.courses_grades.values(), []))) < (sum(
-                sum(other.courses_grades.values(), [])) / len(sum(other.courses_grades.values(), [])))
+        if not isinstance(other, Lecturer):
+            raise Exception('Не является лектором')
         else:
-            return 'Не является лектором'
+            return self.average_grade() < other.average_grade()
 
-    def __gt__(self, other):
-        if isinstance(other, Lecturer):
-            return (sum(sum(self.courses_grades.values(), [])) / len(sum(self.courses_grades.values(), []))) > (sum(
-                sum(other.courses_grades.values(), [])) / len(sum(other.courses_grades.values(), [])))
+    def __le__(self, other):
+        if not isinstance(other, Lecturer):
+            raise Exception('Не является лектором')
         else:
-            return 'Не является лектором'
+            return self.average_grade() <= other.average_grade()
 
-    @staticmethod
-    def average_course_grade(self, course):
-        course_grades = []
-        for lecturer in lecturers:
-            course_grades.append(lecturer.courses_grades[course])
+    def __eq__(self, other):
+        if not isinstance(other, Lecturer):
+            raise Exception('Не является лектором')
+        else:
+            return self.average_grade() == other.average_grade()
 
-        def mean(list):
-            total_sum = 0
-            count = 0
-            for sublist in list:
-                for num in sublist:
-                    total_sum += num
-                    count += 1
-            mean_value = total_sum / count
-            return mean_value
+    def average_grade(self):
+        if not self:
+            return 0
+        else:
+            grades_storage = []
+            for grade in self.grades.values():
+                grades_storage.extend(grade)
+            return round(sum(grades_storage) / len(grades_storage), 2)
 
-        return mean(course_grades)
+    def average_course_grade(persons, course):
+        if not isinstance(persons, list):
+            return 'Not list'
+        course_grades_storage = []
+        for person in persons:
+            course_grades_storage.extend(person.grades.get(course, []))
+        if not course_grades_storage:
+            return 'По такому курсу ни у кого оценок нет'
+        return round(sum(course_grades_storage) / len(course_grades_storage), 2)
 
 
 class Reviewer(Mentor):
     def rate_hw(self, student, course, grade):
-        if isinstance(student, Student) and course in self.courses_attached and course in student.courses_in_progress:
+        if isinstance(student, Student) and course in self.courses_attached \
+                and course in student.courses_in_progress and 0 < grade < 11:
             if course in student.grades:
                 student.grades[course] += [grade]
             else:
@@ -166,7 +178,7 @@ second_reviewer.rate_hw(second_student, 'Git', 8)
 first_lecturer = Lecturer('First', 'Lecturer')
 first_lecturer.courses_attached += ['Python']
 first_lecturer.courses_attached += ['Git']
-second_lecturer = Lecturer('First', 'Lecturer')
+second_lecturer = Lecturer('Second', 'Lecturer')
 second_lecturer.courses_attached += ['Python']
 second_lecturer.courses_attached += ['Git']
 
@@ -188,11 +200,7 @@ first_student.courses_rate(second_lecturer, 'Git', 10)
 second_student.courses_rate(second_lecturer, 'Python', 8)
 second_student.courses_rate(second_lecturer, 'Git', 7)
 
-students = (first_student, second_student)
-lecturers = (first_lecturer, second_lecturer)
+students = [first_student, second_student]
+lecturers = [first_lecturer, second_lecturer]
 
-average_students_grade_git = Student.average_course_grade(students, 'Git')
-average_lecturers_grade_git = Lecturer.average_course_grade(lecturers, 'Python')
-
-print(f'Средняя оценка студентов на курсе Git: {average_students_grade_git}')
-print(f'Средняя оценка лекторов на курсе Git: {average_lecturers_grade_git}')
+print(Lecturer.average_course_grade(lecturers, 'Git'))
